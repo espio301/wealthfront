@@ -154,7 +154,7 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
 
     //BUG: objectArray has length 3 but appears to potentially have 4 total parameters stored potentially - acaldwell
     @Override
-        public Page<SavingsAccountData> retrieveAll(final SearchParameters searchParameters) {
+    public Page<SavingsAccountData> retrieveAll(final SearchParameters searchParameters) {
 
         final AppUser currentUser = this.context.authenticatedUser();
         final String hierarchy = currentUser.getOffice().getHierarchy();
