@@ -152,8 +152,9 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
         return this.jdbcTemplate.query(sqlBuilder.toString(), this.savingAccountMapper, queryParameters);
     }
 
+    //BUG: objectArray has length 3 but appears to potentially have 4 total parameters stored potentially - acaldwell
     @Override
-    public Page<SavingsAccountData> retrieveAll(final SearchParameters searchParameters) {
+        public Page<SavingsAccountData> retrieveAll(final SearchParameters searchParameters) {
 
         final AppUser currentUser = this.context.authenticatedUser();
         final String hierarchy = currentUser.getOffice().getHierarchy();
@@ -196,6 +197,50 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
                 }
             }
 
+            if (searchParameters.hasLimit()) {
+                sqlBuilder.append(" ");
+                if (searchParameters.hasOffset()) {
+                    sqlBuilder.append(sqlGenerator.limit(searchParameters.getLimit(), searchParameters.getOffset()));
+                } else {
+                    sqlBuilder.append(sqlGenerator.limit(searchParameters.getLimit()));
+                }
+            }
+        }
+        final Object[] finalObjectArray = Arrays.copyOf(objectArray, arrayPos);
+        return this.paginationHelper.fetchPage(this.jdbcTemplate, sqlBuilder.toString(), finalObjectArray, this.savingAccountMapper);
+    }
+
+    @Override
+    public Page<SavingsAccountData> retrieveAccountsForBirthday(final SearchParameters searchParameters) {
+
+        final AppUser currentUser = this.context.authenticatedUser();
+        final String hierarchy = currentUser.getOffice().getHierarchy();
+        final String hierarchySearchString = hierarchy + "%";
+
+        final StringBuilder sqlBuilder = new StringBuilder(200);
+        sqlBuilder.append("select " + sqlGenerator.calcFoundRows() + " ");
+        sqlBuilder.append(this.savingAccountMapper.schema());
+
+        sqlBuilder.append(" join m_office o on o.id = c.office_id");
+        sqlBuilder.append(" where o.hierarchy like ?");
+
+        final Object[] objectArray = new Object[2];
+        objectArray[0] = hierarchySearchString;
+        int arrayPos = 1;
+        if (searchParameters != null) {
+            if (searchParameters.getBirthDate() != null) {
+                sqlBuilder.append(" and c.date_of_birth = ?");
+                objectArray[arrayPos++] = searchParameters.getBirthDate();
+            }
+            if (searchParameters.hasOrderBy()) {
+                sqlBuilder.append(" order by ").append(searchParameters.getOrderBy());
+                this.columnValidator.validateSqlInjection(sqlBuilder.toString(), searchParameters.getOrderBy());
+
+                if (searchParameters.hasSortOrder()) {
+                    sqlBuilder.append(' ').append(searchParameters.getSortOrder());
+                    this.columnValidator.validateSqlInjection(sqlBuilder.toString(), searchParameters.getSortOrder());
+                }
+            }
             if (searchParameters.hasLimit()) {
                 sqlBuilder.append(" ");
                 if (searchParameters.hasOffset()) {

@@ -57,6 +57,7 @@ public class SearchParameters {
     @Getter(AccessLevel.NONE)
     private Boolean isSelfUser;
     private Integer legalForm;
+    private java.time.LocalDate birthDate;
 
     public Integer getLimit() {
         if (limit == null) {

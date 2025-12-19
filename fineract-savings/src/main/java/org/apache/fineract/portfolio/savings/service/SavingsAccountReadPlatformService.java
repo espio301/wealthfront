@@ -33,6 +33,8 @@ import org.apache.fineract.portfolio.savings.domain.SavingsAccount;
 public interface SavingsAccountReadPlatformService {
 
     Page<SavingsAccountData> retrieveAll(SearchParameters searchParameters);
+    
+    Page<SavingsAccountData> retrieveAccountsForBirthday(SearchParameters searchParameters);
 
     Collection<SavingsAccountData> retrieveAllForLookup(Long clientId);
 
