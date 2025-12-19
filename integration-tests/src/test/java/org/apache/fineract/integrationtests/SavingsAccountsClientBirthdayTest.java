@@ -75,7 +75,7 @@ public class SavingsAccountsClientBirthdayTest extends IntegrationTest {
         this.clientHelper = new ClientHelper(this.requestSpec, this.responseSpec);
     }
 
-    //this is a very basic test and we would want to implement a more thorough retrieval test.
+    //this is a very basic test and we would want to implement a more thorough retrieval test. We also would want to either change the testing Birthdays or delete the birthdays posted after testing purposes.
     @Test
     void testBirthdayRetrieval() {
         LOG.info("test retrieving accounts given birthday:");
