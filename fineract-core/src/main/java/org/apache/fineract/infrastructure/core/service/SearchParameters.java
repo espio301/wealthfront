@@ -19,6 +19,7 @@
 package org.apache.fineract.infrastructure.core.service;
 
 import org.apache.commons.lang3.StringUtils;
+import java.time.LocalDate;
 
 public final class SearchParameters {
 
@@ -36,8 +37,8 @@ public final class SearchParameters {
     private final String sortOrder;
     private final String accountNo;
     private final String currencyCode;
-
     private final Long staffId;
+    private final LocalDate birthDate;
 
     private final Long loanId;
 
@@ -196,6 +197,20 @@ public final class SearchParameters {
                 staffId, accountNo, loanId, savingsId, orphansOnly, isSelfUser);
     }
 
+    public static SearchParameters forBirthDate(final LocalDate birthDate, final Integer offset, final Integer limit,
+            final String orderBy, final String sortOrder) {
+
+        final Integer maxLimitAllowed = getCheckedLimit(limit);
+        final Long staffId = null;
+        final String accountNo = null;
+        final Long loanId = null;
+        final Long savingsId = null;
+        final Boolean orphansOnly = false;
+        final boolean isSelfUser = false;
+
+        return new SearchParameters(birthDate, offset, limit, orderBy, sortOrder);
+    }
+
     public static SearchParameters forAccountTransfer(final String sqlSearch, final String externalId, final Integer offset,
             final Integer limit, final String orderBy, final String sortOrder) {
 
@@ -269,6 +284,7 @@ public final class SearchParameters {
         this.categoryId = null;
         this.isSelfUser = isSelfUser;
         this.status = null;
+        this.birthDate = null;
 
     }
 
@@ -298,7 +314,7 @@ public final class SearchParameters {
         this.categoryId = null;
         this.isSelfUser = isSelfUser;
         this.status = status;
-
+        this.birthDate = null;
     }
 
     private SearchParameters(final Long officeId, final String externalId, final String name, final String hierarchy,
@@ -327,6 +343,7 @@ public final class SearchParameters {
         this.categoryId = null;
         this.isSelfUser = isSelfUser;
         this.status = null;
+        this.birthDate = null;
     }
 
     private SearchParameters(final Long provisioningEntryId, final Long officeId, final Long productId, final Long categoryId,
@@ -353,6 +370,7 @@ public final class SearchParameters {
         this.categoryId = categoryId;
         this.isSelfUser = false;
         this.status = null;
+        this.birthDate = null;
 
     }
 
@@ -382,6 +400,35 @@ public final class SearchParameters {
         this.categoryId = null;
         this.isSelfUser = false;
         this.status = null;
+        this.birthDate = null;
+
+    }
+
+    private SearchParameters(final LocalDate birthDate, final Integer offset, final Integer limit,
+            final String orderBy, final String sortOrder) {
+        this.sqlSearch = null;
+        this.officeId = null;
+        this.externalId = null;
+        this.name = null;
+        this.hierarchy = null;
+        this.firstname = null;
+        this.lastname = null;
+        this.offset = offset;
+        this.limit = limit;
+        this.orderBy = orderBy;
+        this.sortOrder = sortOrder;
+        this.staffId = null;
+        this.accountNo = null;
+        this.loanId = null;
+        this.savingsId = null;
+        this.orphansOnly = null;
+        this.currencyCode = null;
+        this.provisioningEntryId = null;
+        this.productId = null;
+        this.categoryId = null;
+        this.isSelfUser = false;
+        this.status = null;
+        this.birthDate = birthDate;
 
     }
 
@@ -488,7 +535,9 @@ public final class SearchParameters {
     public Long getStaffId() {
         return this.staffId;
     }
-
+    public LocalDate getBirthDate(){
+        return this.birthDate;
+    }
     public String getAccountNo() {
         return this.accountNo;
     }

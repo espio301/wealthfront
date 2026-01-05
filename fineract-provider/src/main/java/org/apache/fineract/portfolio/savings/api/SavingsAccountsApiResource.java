@@ -18,6 +18,10 @@
  */
 package org.apache.fineract.portfolio.savings.api;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -138,6 +142,19 @@ public class SavingsAccountsApiResource {
 
         final ApiRequestJsonSerializationSettings settings = apiRequestParameterHelper.process(uriInfo.getQueryParameters());
         return toApiJsonSerializer.serialize(settings, products, SavingsApiSetConstants.SAVINGS_ACCOUNT_RESPONSE_DATA_PARAMETERS);
+    }
+
+    @GET
+    @Path("/birthday")
+    @Consumes({ MediaType.APPLICATION_JSON })
+    @Produces({ MediaType.APPLICATION_JSON })
+    public String retrieveGivenBirthday(@QueryParam("dateOfBirth") final String dateOfBirth, @Context final UriInfo uriInfo,
+            @QueryParam("offset") @Parameter(description = "offset") final Integer offset,
+            @QueryParam("limit") @Parameter(description = "limit") final Integer limit,
+            @QueryParam("orderBy") @Parameter(description = "orderBy") final String orderBy,
+            @QueryParam("sortOrder") @Parameter(description = "sortOrder") final String sortOrder) {
+
+        return retrieveAccountsForBirthday(dateOfBirth, offset, limit, orderBy, sortOrder, uriInfo);
     }
 
     @POST
@@ -525,5 +542,27 @@ public class SavingsAccountsApiResource {
         final Long importDocumentId = bulkImportWorkbookService.importWorkbook(GlobalEntityType.SAVINGS_TRANSACTIONS.toString(),
                 uploadedInputStream, fileDetail, locale, dateFormat);
         return toApiJsonSerializer.serialize(importDocumentId);
+    }
+
+    private String retrieveAccountsForBirthday(String dateOfBirth, Integer offset, Integer limit, String orderBy, String sortOrder, UriInfo uriInfo){
+        context.authenticatedUser().validateHasReadPermission(SavingsApiConstants.SAVINGS_ACCOUNT_RESOURCE_NAME);
+        if (StringUtils.isBlank(dateOfBirth)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "date of birth field is mistyped or non-existent.");
+        }
+        LocalDate parsedDate;
+        try{
+            parsedDate = LocalDate.parse(dateOfBirth);
+        }
+        catch(DateTimeParseException e){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "date of birth value is mistyped or non-existent.");
+        }
+
+        final SearchParameters searchParameters = SearchParameters.forBirthDate(parsedDate, offset, limit, orderBy, sortOrder);
+                                                                   
+        final Page<SavingsAccountData> products = savingsAccountReadPlatformService.retrieveAccountsForBirthday(searchParameters);
+
+        final ApiRequestJsonSerializationSettings settings = apiRequestParameterHelper.process(uriInfo.getQueryParameters());
+
+        return toApiJsonSerializer.serialize(settings, products, SavingsApiSetConstants.SAVINGS_ACCOUNT_RESPONSE_DATA_PARAMETERS);
     }
 }

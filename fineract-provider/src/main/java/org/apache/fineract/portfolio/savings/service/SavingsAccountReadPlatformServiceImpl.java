@@ -237,6 +237,50 @@ public class SavingsAccountReadPlatformServiceImpl implements SavingsAccountRead
     }
 
     @Override
+    public Page<SavingsAccountData> retrieveAccountsForBirthday(final SearchParameters searchParameters) {
+
+        final AppUser currentUser = this.context.authenticatedUser();
+        final String hierarchy = currentUser.getOffice().getHierarchy();
+        final String hierarchySearchString = hierarchy + "%";
+
+        final StringBuilder sqlBuilder = new StringBuilder(200);
+        sqlBuilder.append("select " + sqlGenerator.calcFoundRows() + " ");
+        sqlBuilder.append(this.savingAccountMapper.schema());
+
+        sqlBuilder.append(" join m_office o on o.id = c.office_id");
+        sqlBuilder.append(" where o.hierarchy like ?");
+
+        final Object[] objectArray = new Object[2];
+        objectArray[0] = hierarchySearchString;
+        int arrayPos = 1;
+        if (searchParameters != null) {
+            if (searchParameters.getBirthDate() != null) {
+                sqlBuilder.append(" and c.date_of_birth = ?");
+                objectArray[arrayPos++] = searchParameters.getBirthDate();
+            }
+            if (searchParameters.isOrderByRequested()) {
+                sqlBuilder.append(" order by ").append(searchParameters.getOrderBy());
+                this.columnValidator.validateSqlInjection(sqlBuilder.toString(), searchParameters.getOrderBy());
+
+                if (searchParameters.isSortOrderProvided()) {
+                    sqlBuilder.append(' ').append(searchParameters.getSortOrder());
+                    this.columnValidator.validateSqlInjection(sqlBuilder.toString(), searchParameters.getSortOrder());
+                }
+            }
+            if (searchParameters.isLimited()) {
+                sqlBuilder.append(" ");
+                if (searchParameters.isOffset()) {
+                    sqlBuilder.append(sqlGenerator.limit(searchParameters.getLimit(), searchParameters.getOffset()));
+                } else {
+                    sqlBuilder.append(sqlGenerator.limit(searchParameters.getLimit()));
+                }
+            }
+        }
+        final Object[] finalObjectArray = Arrays.copyOf(objectArray, arrayPos);
+        return this.paginationHelper.fetchPage(this.jdbcTemplate, sqlBuilder.toString(), finalObjectArray, this.savingAccountMapper);
+    }
+
+    @Override
     public SavingsAccountData retrieveOne(final Long accountId) {
 
         try {

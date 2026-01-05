@@ -31,6 +31,8 @@ public interface SavingsAccountReadPlatformService {
 
     Page<SavingsAccountData> retrieveAll(SearchParameters searchParameters);
 
+    Page<SavingsAccountData> retrieveAccountsForBirthday(SearchParameters searchParameters);
+
     Collection<SavingsAccountData> retrieveAllForLookup(Long clientId);
 
     Collection<SavingsAccountData> retrieveActiveForLookup(Long clientId, DepositAccountType depositAccountType);
